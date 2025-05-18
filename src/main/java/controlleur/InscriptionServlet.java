@@ -81,7 +81,7 @@ public class InscriptionServlet extends HttpServlet {
             return;
         }
 
-        // Création de l'objet fanfaron
+        // Création de l'objet fanfaron inscription
         Fanfaron fanfaron = new Fanfaron();
         fanfaron.setNomFanfaron(nomFanfaron);
         fanfaron.setEmail(email);
