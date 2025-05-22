@@ -8,9 +8,19 @@ import java.util.List;
 public class EvenementDAO {
     private Connection connection;
 
-    // Constructeur qui reçoit la connexion depuis DAOFactory
+    // Constructeur qui utilise DAOFactory pour obtenir la connexion
     public EvenementDAO(Connection connection) {
         this.connection = connection;
+    }
+
+    /**
+     * Méthode utilitaire pour obtenir une nouvelle connexion si nécessaire
+     */
+    private Connection getConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            connection = DAOFactory.getInstance().getConnection();
+        }
+        return connection;
     }
 
     /**
@@ -21,7 +31,8 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement ORDER BY horodatage DESC";
 
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
@@ -51,7 +62,9 @@ public class EvenementDAO {
     public Evenement findById(int id) {
         String sql = "SELECT * FROM Evenement WHERE id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -74,7 +87,9 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement WHERE nom ILIKE ? ORDER BY horodatage DESC";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, "%" + nom + "%");
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -97,7 +112,9 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement WHERE lieu ILIKE ? ORDER BY horodatage DESC";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, "%" + lieu + "%");
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -120,7 +137,9 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement WHERE id_createur = ? ORDER BY horodatage DESC";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, idCreateur);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -144,7 +163,9 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement WHERE horodatage BETWEEN ? AND ? ORDER BY horodatage ASC";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setTimestamp(1, dateDebut);
             stmt.setTimestamp(2, dateFin);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -171,9 +192,11 @@ public class EvenementDAO {
         }
 
         String sql = "INSERT INTO Evenement (nom, horodatage, duree, lieu, description, id_createur) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setString(1, evenement.getNom().trim());
-            stmt.setTime(2, evenement.getHorodatage());
+            stmt.setTimestamp(2, new Timestamp(evenement.getHorodatage().getTime()));
             stmt.setTime(3, evenement.getDuree());
             stmt.setString(4, evenement.getLieu());
             stmt.setString(5, evenement.getDescription());
@@ -211,9 +234,11 @@ public class EvenementDAO {
         }
 
         String sql = "UPDATE Evenement SET nom = ?, horodatage = ?, duree = ?, lieu = ?, description = ?, id_createur = ? WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, evenement.getNom().trim());
-            stmt.setTime(2, evenement.getHorodatage());
+            stmt.setTimestamp(2, new Timestamp(evenement.getHorodatage().getTime()));
             stmt.setTime(3, evenement.getDuree());
             stmt.setString(4, evenement.getLieu());
             stmt.setString(5, evenement.getDescription());
@@ -246,7 +271,9 @@ public class EvenementDAO {
         }
 
         String sql = "DELETE FROM Evenement WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, id);
 
             int rowsAffected = stmt.executeUpdate();
@@ -283,7 +310,9 @@ public class EvenementDAO {
      */
     public boolean exists(int id) {
         String sql = "SELECT COUNT(*) FROM Evenement WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -303,8 +332,10 @@ public class EvenementDAO {
      */
     public int count() {
         String sql = "SELECT COUNT(*) FROM Evenement";
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
+
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -322,7 +353,9 @@ public class EvenementDAO {
      */
     public int countByCreateur(int idCreateur) {
         String sql = "SELECT COUNT(*) FROM Evenement WHERE id_createur = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, idCreateur);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -346,7 +379,9 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement ORDER BY horodatage DESC LIMIT ? OFFSET ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, limit);
             stmt.setInt(2, offset);
 
@@ -370,7 +405,8 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement WHERE horodatage > NOW() ORDER BY horodatage ASC";
 
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
@@ -391,7 +427,8 @@ public class EvenementDAO {
         List<Evenement> list = new ArrayList<>();
         String sql = "SELECT * FROM Evenement WHERE horodatage < NOW() ORDER BY horodatage DESC";
 
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
@@ -414,7 +451,7 @@ public class EvenementDAO {
         Evenement evenement = new Evenement();
         evenement.setId(rs.getInt("id"));
         evenement.setNom(rs.getString("nom"));
-        evenement.setHorodatage(rs.getTime("horodatage"));
+        evenement.setHorodatage(rs.getTimestamp("horodatage"));
         evenement.setDuree(rs.getTime("duree"));
         evenement.setLieu(rs.getString("lieu"));
         evenement.setDescription(rs.getString("description"));

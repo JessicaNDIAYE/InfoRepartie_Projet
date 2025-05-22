@@ -1,11 +1,12 @@
 package model;
 
 import java.sql.Time;
+import java.sql.Timestamp;
 
 public class Evenement {
     private int id;
     private String nom;
-    private Time horodatage;
+    private Timestamp horodatage;
     private Time duree;
     private String lieu;
     private String description;
@@ -15,7 +16,7 @@ public class Evenement {
     public Evenement() {
     }
 
-    public Evenement(String nom, Time horodatage, Time duree, String lieu, String description, int idCreateur) {
+    public Evenement(String nom, Timestamp horodatage, Time duree, String lieu, String description, int idCreateur) {
         this.nom = nom;
         this.horodatage = horodatage;
         this.duree = duree;
@@ -41,11 +42,11 @@ public class Evenement {
         this.nom = nom;
     }
 
-    public Time getHorodatage() {
+    public Timestamp getHorodatage() {
         return horodatage;
     }
 
-    public void setHorodatage(Time horodatage) {
+    public void setHorodatage(Timestamp horodatage) {
         this.horodatage = horodatage;
     }
 
