@@ -1,6 +1,7 @@
 package controlleur;
 
 import dao.FanfaronDAO;
+import dao.DAOFactory;
 import model.Fanfaron;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
@@ -14,12 +15,13 @@ import java.util.List;
 @WebServlet("/admin")
 public class AdminController extends HttpServlet {
 
-    private FanfaronDAO fanfaronDAO;
+    private DAOFactory daoFactory;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        fanfaronDAO = new FanfaronDAO();
+        // Initialiser la factory DAO qui gère les connexions
+        daoFactory = DAOFactory.getInstance();
     }
 
     /**
@@ -36,6 +38,7 @@ public class AdminController extends HttpServlet {
         }
 
         String action = request.getParameter("action");
+        FanfaronDAO fanfaronDAO = daoFactory.getFanfaronDAO();
 
         if ("edit".equals(action)) {
             // Afficher le formulaire de modification d'un utilisateur
@@ -92,6 +95,8 @@ public class AdminController extends HttpServlet {
     private void updateFanfaron(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        FanfaronDAO fanfaronDAO = daoFactory.getFanfaronDAO();
+
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             String nomFanfaron = request.getParameter("nomFanfaron").trim();
@@ -143,6 +148,8 @@ public class AdminController extends HttpServlet {
      */
     private void toggleAdminStatus(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        FanfaronDAO fanfaronDAO = daoFactory.getFanfaronDAO();
 
         try {
             int userId = Integer.parseInt(request.getParameter("id"));
