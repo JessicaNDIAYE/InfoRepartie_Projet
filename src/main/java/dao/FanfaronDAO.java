@@ -11,8 +11,9 @@ public class FanfaronDAO {
     public boolean checkNomFanfaronExists(String nomFanfaron) {
         boolean exists = false;
         String query = "SELECT COUNT(*) FROM Fanfaron WHERE nom_fanfaron = ?";
+        System.out.println("FanfaronDAO: Vérification de l'existence du nom de fanfaron: '" + nomFanfaron + "'");
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection(); // Utilise votre classe DatabaseConnection
              PreparedStatement ps = conn.prepareStatement(query)) {
 
             ps.setString(1, nomFanfaron.trim());
@@ -21,9 +22,10 @@ public class FanfaronDAO {
             if (rs.next()) {
                 exists = rs.getInt(1) > 0;
             }
-            System.out.println("checkNomFanfaronExists('" + nomFanfaron + "') = " + exists);
+            System.out.println("FanfaronDAO: checkNomFanfaronExists('" + nomFanfaron + "') = " + exists);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("FanfaronDAO: Erreur SQL lors de checkNomFanfaronExists:");
+            e.printStackTrace(); // Affiche la pile d'erreur complète
         }
 
         return exists;
@@ -32,11 +34,12 @@ public class FanfaronDAO {
     public boolean checkEmailExists(String email) {
         boolean exists = false;
         String query = "SELECT COUNT(*) FROM Fanfaron WHERE email = ?";
+        System.out.println("FanfaronDAO: Vérification de l'existence de l'email: '" + email + "'");
 
         if (email == null) email = "";
         email = email.trim();
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection(); // Utilise votre classe DatabaseConnection
              PreparedStatement ps = conn.prepareStatement(query)) {
 
             ps.setString(1, email);
@@ -45,19 +48,23 @@ public class FanfaronDAO {
             if (rs.next()) {
                 exists = rs.getInt(1) > 0;
             }
-            System.out.println("checkEmailExists('" + email + "') = " + exists);
+            System.out.println("FanfaronDAO: checkEmailExists('" + email + "') = " + exists);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("FanfaronDAO: Erreur SQL lors de checkEmailExists:");
+            e.printStackTrace(); // Affiche la pile d'erreur complète
         }
 
         return exists;
     }
 
     public int insertFanfaron(Fanfaron fanfaron) {
-        String query = "INSERT INTO Fanfaron (nom_fanfaron, nom, prenom, genre, email, mdp, contraintes_alimentaires, date_creation) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)";
+        String query = "INSERT INTO Fanfaron (nom_fanfaron, nom, prenom, genre, email, mdp, contraintes_alimentaires, date_creation, admin) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_DATE, FALSE)"; // FALSE par défaut pour 'admin'
 
-        try (Connection conn = DatabaseConnection.getConnection();
+        System.out.println("FanfaronDAO: Tentative d'insertion du fanfaron: " + fanfaron.getNomFanfaron());
+        System.out.println("Requête d'insertion: " + query); // Log la requête pour vérification
+
+        try (Connection conn = DatabaseConnection.getConnection(); // Utilise votre classe DatabaseConnection
              PreparedStatement ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, fanfaron.getNomFanfaron().trim());
@@ -69,31 +76,34 @@ public class FanfaronDAO {
             ps.setString(7, fanfaron.getContraintesAlimentaires().trim());
 
 
-            System.out.println("Exécution de la requête d'insertion...");
+            System.out.println("FanfaronDAO: Exécution de la requête d'insertion...");
             int rowsAffected = ps.executeUpdate();
-            System.out.println("Lignes insérées : " + rowsAffected);
+            System.out.println("FanfaronDAO: Lignes insérées : " + rowsAffected);
 
             if (rowsAffected > 0) {
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         int generatedId = rs.getInt(1);
-                        System.out.println("Nouvel ID généré : " + generatedId);
+                        System.out.println("FanfaronDAO: Nouvel ID généré : " + generatedId);
                         return generatedId;
                     }
                 }
             }
 
         } catch (SQLException e) {
-            System.out.println("Erreur SQL lors de l'insertion :");
-            e.printStackTrace();
+            System.err.println("FanfaronDAO: Erreur SQL lors de l'insertion de Fanfaron:");
+            e.printStackTrace(); // TRÈS IMPORTANT: Affiche l'erreur exacte de la base de données
+        } catch (Exception e) {
+            System.err.println("FanfaronDAO: Erreur inattendue lors de l'insertion de Fanfaron:");
+            e.printStackTrace(); // Pour capturer d'autres types d'erreurs
         }
 
-        return -1;
+        return -1; // Indique un échec de l'insertion
     }
 
     public Fanfaron authenticateFanfaron(String identifiant, String motDePasse) {
-        System.out.println("Authentification en cours pour : " + identifiant);
-        String query = "SELECT * FROM Fanfaron WHERE (nom_fanfaron = ? OR email = ?) AND mdp = ?";
+        System.out.println("FanfaronDAO: Authentification en cours pour : " + identifiant);
+        String query = "SELECT * FROM Fanfaron WHERE (nom_fanfaron = ? OR email = ?) AND mdp = ?"; // MDP en clair
 
         if (identifiant == null) identifiant = "";
         if (motDePasse == null) motDePasse = "";
@@ -106,11 +116,11 @@ public class FanfaronDAO {
 
             ps.setString(1, identifiant);
             ps.setString(2, identifiant);
-            ps.setString(3, motDePasse);
+            ps.setString(3, motDePasse); // Ici, le mot de passe est comparé en clair
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                System.out.println("Utilisateur trouvé : " + identifiant);
+                System.out.println("FanfaronDAO: Utilisateur '" + identifiant + "' trouvé. Construction de l'objet Fanfaron.");
                 Fanfaron fanfaron = new Fanfaron();
                 fanfaron.setId(rs.getInt("id_fanfaron"));
                 fanfaron.setNomFanfaron(rs.getString("nom_fanfaron"));
@@ -118,20 +128,20 @@ public class FanfaronDAO {
                 fanfaron.setPrenom(rs.getString("prenom"));
                 fanfaron.setGenre(rs.getString("genre"));
                 fanfaron.setEmail(rs.getString("email"));
-                fanfaron.setMdp(rs.getString("mdp"));
+                fanfaron.setMdp(rs.getString("mdp")); // Récupère le MDP haché (ou en clair)
                 fanfaron.setContraintesAlimentaires(rs.getString("contraintes_alimentaires"));
                 fanfaron.setDateCreation(rs.getDate("date_creation"));
                 fanfaron.setDerniereConnexion(rs.getDate("derniere_connexion"));
                 fanfaron.setAdmin(rs.getBoolean("admin"));
 
-                updateDerniereConnexion(fanfaron.getId());
+                updateDerniereConnexion(fanfaron.getId()); // Met à jour la dernière connexion
 
                 return fanfaron;
             } else {
-                System.out.println("Aucun utilisateur trouvé.");
+                System.out.println("FanfaronDAO: Aucun utilisateur trouvé pour l'identifiant '" + identifiant + "' ou mot de passe incorrect.");
             }
         } catch (SQLException e) {
-            System.err.println("Erreur dans authenticateFanfaron: " + e.getMessage());
+            System.err.println("FanfaronDAO: Erreur SQL dans authenticateFanfaron:");
             e.printStackTrace();
         }
 
@@ -139,7 +149,7 @@ public class FanfaronDAO {
     }
 
     private void updateDerniereConnexion(int id) {
-        System.out.println("Mise à jour de la dernière connexion pour l'utilisateur ID : " + id);
+        System.out.println("FanfaronDAO: Mise à jour de la dernière connexion pour l'utilisateur ID : " + id);
         String query = "UPDATE Fanfaron SET derniere_connexion = CURRENT_TIMESTAMP WHERE id_fanfaron = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -147,18 +157,18 @@ public class FanfaronDAO {
 
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
-            System.out.println("Lignes affectées lors de la mise à jour de dernière connexion : " + rows);
+            System.out.println("FanfaronDAO: Lignes affectées lors de la mise à jour de dernière connexion : " + rows);
 
         } catch (SQLException e) {
-            System.err.println("Erreur dans updateDerniereConnexion: " + e.getMessage());
+            System.err.println("FanfaronDAO: Erreur SQL dans updateDerniereConnexion:");
             e.printStackTrace();
         }
     }
 
     public List<Fanfaron> getAllFanfarons() {
-        System.out.println("Récupération de tous les fanfarons...");
+        System.out.println("FanfaronDAO: Récupération de tous les fanfarons...");
         List<Fanfaron> fanfarons = new ArrayList<>();
-        String query = "SELECT * FROM Fanfaron ORDER BY nom, prenom";
+        String query = "SELECT * FROM Fanfaron ORDER BY nom_fanfaron"; // Tri par nom de fanfaron pour une meilleure lisibilité
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query);
@@ -180,13 +190,192 @@ public class FanfaronDAO {
                 fanfarons.add(fanfaron);
             }
 
-            System.out.println("Nombre total de fanfarons récupérés : " + fanfarons.size());
+            System.out.println("FanfaronDAO: Nombre total de fanfarons récupérés : " + fanfarons.size());
 
         } catch (SQLException e) {
-            System.err.println("Erreur dans getAllFanfarons: " + e.getMessage());
+            System.err.println("FanfaronDAO: Erreur SQL dans getAllFanfarons:");
             e.printStackTrace();
         }
 
         return fanfarons;
+    }
+    /**
+     * Récupérer un fanfaron par son ID
+     */
+    public Fanfaron getFanfaronById(int id) {
+        System.out.println("FanfaronDAO: Récupération du fanfaron avec l'ID : " + id);
+        String query = "SELECT * FROM Fanfaron WHERE id_fanfaron = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Fanfaron fanfaron = new Fanfaron();
+                fanfaron.setId(rs.getInt("id_fanfaron"));
+                fanfaron.setNomFanfaron(rs.getString("nom_fanfaron"));
+                fanfaron.setNom(rs.getString("nom"));
+                fanfaron.setPrenom(rs.getString("prenom"));
+                fanfaron.setGenre(rs.getString("genre"));
+                fanfaron.setEmail(rs.getString("email"));
+                fanfaron.setMdp(rs.getString("mdp"));
+                fanfaron.setContraintesAlimentaires(rs.getString("contraintes_alimentaires"));
+                fanfaron.setDateCreation(rs.getDate("date_creation"));
+                fanfaron.setDerniereConnexion(rs.getDate("derniere_connexion"));
+                fanfaron.setAdmin(rs.getBoolean("admin"));
+
+                System.out.println("FanfaronDAO: Fanfaron trouvé: " + fanfaron.getNomFanfaron());
+                return fanfaron;
+            } else {
+                System.out.println("FanfaronDAO: Aucun fanfaron trouvé pour l'ID : " + id);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("FanfaronDAO: Erreur SQL dans getFanfaronById:");
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * Vérifier si un nom de fanfaron existe déjà (sauf pour un utilisateur spécifique)
+     */
+    public boolean checkNomFanfaronExistsExcept(String nomFanfaron, int exceptId) {
+        boolean exists = false;
+        String query = "SELECT COUNT(*) FROM Fanfaron WHERE nom_fanfaron = ? AND id_fanfaron != ?";
+        System.out.println("FanfaronDAO: Vérification de l'existence du nom de fanfaron '" + nomFanfaron + "' (sauf ID " + exceptId + ")");
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, nomFanfaron.trim());
+            ps.setInt(2, exceptId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                exists = rs.getInt(1) > 0;
+            }
+            System.out.println("FanfaronDAO: checkNomFanfaronExistsExcept result: " + exists);
+        } catch (SQLException e) {
+            System.err.println("FanfaronDAO: Erreur SQL lors de checkNomFanfaronExistsExcept:");
+            e.printStackTrace();
+        }
+
+        return exists;
+    }
+
+    /**
+     * Vérifier si un email existe déjà (sauf pour un utilisateur spécifique)
+     */
+    public boolean checkEmailExistsExcept(String email, int exceptId) {
+        boolean exists = false;
+        String query = "SELECT COUNT(*) FROM Fanfaron WHERE email = ? AND id_fanfaron != ?";
+        System.out.println("FanfaronDAO: Vérification de l'existence de l'email '" + email + "' (sauf ID " + exceptId + ")");
+
+        if (email == null) email = "";
+        email = email.trim();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, email);
+            ps.setInt(2, exceptId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                exists = rs.getInt(1) > 0;
+            }
+            System.out.println("FanfaronDAO: checkEmailExistsExcept result: " + exists);
+        } catch (SQLException e) {
+            System.err.println("FanfaronDAO: Erreur SQL lors de checkEmailExistsExcept:");
+            e.printStackTrace();
+        }
+
+        return exists;
+    }
+
+    /**
+     * Mettre à jour un fanfaron
+     */
+    public boolean updateFanfaron(Fanfaron fanfaron) {
+        // Note: Le mot de passe n'est pas mis à jour ici. S'il doit l'être, il faut une méthode séparée.
+        String query = "UPDATE Fanfaron SET nom_fanfaron = ?, nom = ?, prenom = ?, genre = ?, email = ?, contraintes_alimentaires = ? WHERE id_fanfaron = ?";
+        System.out.println("FanfaronDAO: Mise à jour du fanfaron ID : " + fanfaron.getId());
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, fanfaron.getNomFanfaron().trim());
+            ps.setString(2, fanfaron.getNom().trim());
+            ps.setString(3, fanfaron.getPrenom().trim());
+            ps.setString(4, fanfaron.getGenre().trim());
+            ps.setString(5, fanfaron.getEmail().trim());
+            ps.setString(6, fanfaron.getContraintesAlimentaires().trim());
+            ps.setInt(7, fanfaron.getId());
+
+            int rowsAffected = ps.executeUpdate();
+            System.out.println("FanfaronDAO: Lignes affectées lors de la mise à jour : " + rowsAffected);
+
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("FanfaronDAO: Erreur SQL dans updateFanfaron:");
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /**
+     * Supprimer un fanfaron
+     */
+    public boolean deleteFanfaron(int id) {
+        String query = "DELETE FROM Fanfaron WHERE id_fanfaron = ?";
+        System.out.println("FanfaronDAO: Suppression du fanfaron ID : " + id);
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setInt(1, id);
+
+            int rowsAffected = ps.executeUpdate();
+            System.out.println("FanfaronDAO: Lignes affectées lors de la suppression : " + rowsAffected);
+
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("FanfaronDAO: Erreur SQL dans deleteFanfaron:");
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /**
+     * Basculer le statut administrateur d'un utilisateur
+     */
+    public boolean toggleAdminStatus(int id) {
+        String query = "UPDATE Fanfaron SET admin = NOT admin WHERE id_fanfaron = ?";
+        System.out.println("FanfaronDAO: Basculement du statut admin pour l'ID : " + id);
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setInt(1, id);
+
+            int rowsAffected = ps.executeUpdate();
+            System.out.println("FanfaronDAO: Lignes affectées lors du basculement admin : " + rowsAffected);
+
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("FanfaronDAO: Erreur SQL dans toggleAdminStatus:");
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }
