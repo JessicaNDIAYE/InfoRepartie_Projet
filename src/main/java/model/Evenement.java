@@ -10,6 +10,7 @@ public class Evenement {
     private Time duree;
     private String lieu;
     private String description;
+    private int idType;
     private int idCreateur;
 
     // Constructeurs
@@ -86,5 +87,13 @@ public class Evenement {
     public String toString() {
         return "Evenement [id=" + id + ", nom=" + nom + ", horodatage=" + horodatage + ", duree=" + duree
                 + ", lieu=" + lieu + ", description=" + description + ", idCreateur=" + idCreateur + "]";
+    }
+
+    public void setIdType(int idType) {
+        this.idType = idType;
+    }
+
+    public int getIdType() {
+        return idType;
     }
 }

@@ -7,6 +7,8 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.Fanfaron" %>
+<%@ page import="dao.EvenementDAO" %>
+<%@ page import="dao.DAOFactory" %>
 <%@ page session="true" %>
 
 <%
@@ -15,6 +17,16 @@
         response.sendRedirect("connexion.jsp");
         return;
     }
+
+    Boolean dansCommission = (Boolean) session.getAttribute("dansCommissionPrestation");
+    if (dansCommission == null) {
+        EvenementDAO evenementDAO = DAOFactory.getInstance().getEvenementDAO();
+        dansCommission = evenementDAO.estDansCommissionPrestation(fanfaron.getId());
+        session.setAttribute("dansCommissionPrestation", dansCommission);
+    }
+    request.setAttribute("dansCommissionPrestation", dansCommission);
+
+
 %>
 
 <!DOCTYPE html>
@@ -334,8 +346,21 @@
     <section>
         <h3>Événements</h3>
         <p>Consultez et gérez votre participation aux événements.</p>
+
+        <!-- Bouton pour voir les événements (toujours visible) -->
         <a href="<%= request.getContextPath() %>/listevenementservlet" class="btn btn-success">Voir les événements</a>
+
+        <%
+            Boolean commission = (Boolean) request.getAttribute("dansCommissionPrestation");
+            if (commission != null && commission) {
+        %>
+        <!-- Bouton visible uniquement pour la commission Prestation -->
+        <a href="<%= request.getContextPath() %>/creerevenement" class="btn btn-primary">Créer un événement</a>
+        <%
+            }
+        %>
     </section>
+
 
     <form action="deconnexion" method="post">
         <button type="submit">Se déconnecter</button>
