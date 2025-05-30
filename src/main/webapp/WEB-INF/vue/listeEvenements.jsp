@@ -229,7 +229,7 @@
             Libellé: <%= e.getTypeEvenement() != null ? e.getTypeEvenement().getLibelle() : "TypeEvenement est null" %>
         </td>
         <td>
-            <a href="ModifierParticipationServlet?id_event=<%= e.getId() %>">Gérer ma participation</a>
+            <a class="action-link" href="inscriptionevenement?id=<%= e.getId() %>">Gérer ma participation</a>
         </td>
     </tr>
     <% } %>

@@ -120,4 +120,14 @@ public class FanfaronEvenementParticipationDAO {
         }
         return participations;
     }
+    public void saveOrUpdate(FanfaronEvenementParticipation participation) throws SQLException {
+        FanfaronEvenementParticipation existing = find(participation.getIdFanfaron(), participation.getIdEvent());
+
+        if (existing == null) {
+            insert(participation);
+        } else {
+            update(participation);
+        }
+    }
+
 }

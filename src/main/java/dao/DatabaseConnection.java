@@ -7,9 +7,9 @@ import java.sql.SQLException;
 public class DatabaseConnection {
 
     // Informations de connexion à votre base de données PostgreSQL
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/fanfaron";
+    private static final String DB_URL = "jdbc:postgresql://localhost:5433/fanfare";
     private static final String DB_USER = "postgres";
-    private static final String DB_PASSWORD = "Jesthe1520";
+    private static final String DB_PASSWORD = "kawthar";
 
     // Bloc statique pour charger le pilote JDBC une seule fois
     static {
