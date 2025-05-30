@@ -373,7 +373,8 @@
 
 
     <form action="deconnexion" method="post">
-        <button type="submit">Se déconnecter</button>
+        <a href="<%= request.getContextPath() %>/connexion" class="btn btn-primary">Se déconnecter</a>
+
     </form>
 
 </main>
