@@ -10,7 +10,7 @@ public class Evenement {
     private Time duree;
     private String lieu;
     private String description;
-    private int idType;
+    private TypeEvenement typeEvenement; // Changement ici
     private int idCreateur;
 
     // Constructeurs
@@ -26,7 +26,19 @@ public class Evenement {
         this.idCreateur = idCreateur;
     }
 
-    // Getters et setters
+    // Constructeur avec TypeEvenement
+    public Evenement(String nom, Timestamp horodatage, Time duree, String lieu, String description,
+                     TypeEvenement typeEvenement, int idCreateur) {
+        this.nom = nom;
+        this.horodatage = horodatage;
+        this.duree = duree;
+        this.lieu = lieu;
+        this.description = description;
+        this.typeEvenement = typeEvenement;
+        this.idCreateur = idCreateur;
+    }
+
+    // Getters et setters existants
     public int getId() {
         return id;
     }
@@ -83,17 +95,34 @@ public class Evenement {
         this.idCreateur = idCreateur;
     }
 
-    @Override
-    public String toString() {
-        return "Evenement [id=" + id + ", nom=" + nom + ", horodatage=" + horodatage + ", duree=" + duree
-                + ", lieu=" + lieu + ", description=" + description + ", idCreateur=" + idCreateur + "]";
+    // Nouveaux getters/setters pour TypeEvenement
+    public TypeEvenement getTypeEvenement() {
+        return typeEvenement;
+    }
+
+    public void setTypeEvenement(TypeEvenement typeEvenement) {
+        this.typeEvenement = typeEvenement;
+    }
+
+    // Méthodes de compatibilité pour l'ID du type
+    public int getIdType() {
+        return typeEvenement != null ? typeEvenement.getIdType() : 0;
     }
 
     public void setIdType(int idType) {
-        this.idType = idType;
+        // Cette méthode peut créer un TypeEvenement temporaire ou être utilisée
+        // en combinaison avec une méthode DAO pour récupérer le TypeEvenement complet
+        if (this.typeEvenement == null) {
+            this.typeEvenement = new TypeEvenement(idType, ""); // Libellé vide temporaire
+        } else {
+            this.typeEvenement.setIdType(idType);
+        }
     }
 
-    public int getIdType() {
-        return idType;
+    @Override
+    public String toString() {
+        return "Evenement [id=" + id + ", nom=" + nom + ", horodatage=" + horodatage + ", duree=" + duree
+                + ", lieu=" + lieu + ", description=" + description + ", typeEvenement=" + typeEvenement
+                + ", idCreateur=" + idCreateur + "]";
     }
 }

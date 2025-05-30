@@ -1,6 +1,7 @@
 package dao;
 
 import model.Evenement;
+import org.postgresql.util.PGInterval;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,32 @@ public class EvenementDAO {
             connection = DAOFactory.getInstance().getConnection();
         }
         return connection;
+    }
+
+    // Méthode utilitaire pour convertir Time en PGInterval
+    private PGInterval timeToInterval(Time time) {
+        if (time == null) return null;
+
+        // Extraire les heures, minutes et secondes
+        int hours = time.getHours();
+        int minutes = time.getMinutes();
+        int seconds = time.getSeconds();
+
+        // Créer un PGInterval (years, months, days, hours, minutes, seconds)
+        return new PGInterval(0, 0, 0, hours, minutes, seconds);
+    }
+
+    // Méthode utilitaire pour convertir PGInterval en Time
+    private Time intervalToTime(PGInterval interval) {
+        if (interval == null) return null;
+
+        // Convertir en millisecondes totales
+        int totalSeconds = interval.getHours() * 3600 +
+                interval.getMinutes() * 60 +
+                (int) interval.getSeconds();
+
+        // Créer un Time à partir des millisecondes
+        return new Time(totalSeconds * 1000L);
     }
 
     // Récupère tous les événements
@@ -65,7 +92,7 @@ public class EvenementDAO {
         return null;
     }
 
-    // Vérifie si un fanfaron est dans la commission prestation (exemple métier)
+    // Vérifie si un fanfaron est dans la commission prestation
     public boolean estDansCommissionPrestation(int idFanfaron) {
         String sql = "SELECT 1 FROM fanfaron_groupe WHERE id_fanfaron = ? AND id_groupe = 1 LIMIT 1";
 
@@ -188,10 +215,14 @@ public class EvenementDAO {
 
             stmt.setString(1, evenement.getNom().trim());
             stmt.setTimestamp(2, new Timestamp(evenement.getHorodatage().getTime()));
-            stmt.setTime(3, evenement.getDuree());  // ici on suppose java.sql.Time
+
+            // Conversion Time vers PGInterval pour PostgreSQL
+            PGInterval interval = timeToInterval(evenement.getDuree());
+            stmt.setObject(3, interval);
+
             stmt.setString(4, evenement.getLieu());
             stmt.setString(5, evenement.getDescription());
-            stmt.setInt(6, evenement.getIdType());  // ATTENTION ajout id_type
+            stmt.setInt(6, evenement.getIdType());
             stmt.setInt(7, evenement.getIdCreateur());
 
             int rowsAffected = stmt.executeUpdate();
@@ -226,7 +257,11 @@ public class EvenementDAO {
 
             stmt.setString(1, evenement.getNom().trim());
             stmt.setTimestamp(2, new Timestamp(evenement.getHorodatage().getTime()));
-            stmt.setTime(3, evenement.getDuree());
+
+            // Conversion Time vers PGInterval pour PostgreSQL
+            PGInterval interval = timeToInterval(evenement.getDuree());
+            stmt.setObject(3, interval);
+
             stmt.setString(4, evenement.getLieu());
             stmt.setString(5, evenement.getDescription());
             stmt.setInt(6, evenement.getIdType());
@@ -344,10 +379,18 @@ public class EvenementDAO {
         evenement.setId(rs.getInt("id_event"));
         evenement.setNom(rs.getString("nom"));
         evenement.setHorodatage(rs.getTimestamp("horodatage"));
-        evenement.setDuree(rs.getTime("duree"));
+
+        // Gestion de l'INTERVAL PostgreSQL
+        Object dureeObj = rs.getObject("duree");
+        if (dureeObj != null && dureeObj instanceof PGInterval) {
+            PGInterval interval = (PGInterval) dureeObj;
+            Time duree = intervalToTime(interval);
+            evenement.setDuree(duree);
+        }
+
         evenement.setLieu(rs.getString("lieu"));
         evenement.setDescription(rs.getString("description"));
-        evenement.setIdType(rs.getInt("id_type"));       // Très important
+        evenement.setIdType(rs.getInt("id_type"));
         evenement.setIdCreateur(rs.getInt("id_createur"));
         return evenement;
     }

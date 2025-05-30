@@ -13,20 +13,30 @@
 
 <%
     Fanfaron fanfaron = (Fanfaron) session.getAttribute("fanfaron");
+    System.out.println("Fanfaron dans session: " + fanfaron);
     if (fanfaron == null) {
+        System.out.println("Redirection vers connexion.jsp - Fanfaron non trouvé en session");
         response.sendRedirect("connexion.jsp");
         return;
+    } else {
+        System.out.println("Fanfaron trouvé en session, ID: " + fanfaron.getId());
     }
+%>
 
+<%
     Boolean dansCommission = (Boolean) session.getAttribute("dansCommissionPrestation");
+    System.out.println("dansCommissionPrestation dans session: " + dansCommission);
+
     if (dansCommission == null) {
+        System.out.println("Calcul de dansCommissionPrestation via DAO");
         EvenementDAO evenementDAO = DAOFactory.getInstance().getEvenementDAO();
         dansCommission = evenementDAO.estDansCommissionPrestation(fanfaron.getId());
+        System.out.println("Résultat DAO pour estDansCommissionPrestation: " + dansCommission);
         session.setAttribute("dansCommissionPrestation", dansCommission);
+    } else {
+        System.out.println("Utilisation de la valeur en cache pour dansCommissionPrestation");
     }
-    request.setAttribute("dansCommissionPrestation", dansCommission);
-
-
+    System.out.println("Valeur finale de dansCommissionPrestation: " + dansCommission);
 %>
 
 <!DOCTYPE html>

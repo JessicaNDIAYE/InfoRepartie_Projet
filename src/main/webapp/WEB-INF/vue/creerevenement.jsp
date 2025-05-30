@@ -7,13 +7,46 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="model.Fanfaron" %>
+<%@ page import="model.TypeEvenement" %>
+<%@ page import="dao.EvenementDAO" %>
+<%@ page import="dao.TypeEvenementDAO" %>
+<%@ page import="dao.DAOFactory" %>
+<%@ page import="java.util.List" %>
 <%
-    Fanfaron fanfaron = (Fanfaron) session.getAttribute("fanfaron");
-    if (fanfaron == null) {
-        response.sendRedirect("connexion");
-        return;
-    }
+    // Déclarer la variable error au début du scriptlet
     String error = (String) request.getAttribute("error");
+
+    Fanfaron fanfaron = (Fanfaron) session.getAttribute("fanfaron");
+    System.out.println("Fanfaron dans session: " + fanfaron);
+    if (fanfaron == null) {
+        System.out.println("Redirection vers connexion.jsp - Fanfaron non trouvé en session");
+        response.sendRedirect("connexion.jsp");
+        return;
+    } else {
+        System.out.println("Fanfaron trouvé en session, ID: " + fanfaron.getId());
+    }
+
+    Boolean dansCommission = (Boolean) session.getAttribute("dansCommissionPrestation");
+    System.out.println("dansCommissionPrestation dans session: " + dansCommission);
+
+    if (dansCommission == null) {
+        System.out.println("Calcul de dansCommissionPrestation via DAO");
+        EvenementDAO evenementDAO = DAOFactory.getInstance().getEvenementDAO();
+        dansCommission = evenementDAO.estDansCommissionPrestation(fanfaron.getId());
+        System.out.println("Résultat DAO pour estDansCommissionPrestation: " + dansCommission);
+        session.setAttribute("dansCommissionPrestation", dansCommission);
+    } else {
+        System.out.println("Utilisation de la valeur en cache pour dansCommissionPrestation");
+    }
+    System.out.println("Valeur finale de dansCommissionPrestation: " + dansCommission);
+
+    // Récupérer la liste des types d'événements
+    TypeEvenementDAO typeDAO = DAOFactory.getInstance().getTypeEvenementDAO();
+    List<TypeEvenement> typesEvenements = typeDAO.findAll();
+
+    System.out.println("Tentative d'accès à creerunevenement.jsp");
+    System.out.println("Chemin demandé: " + request.getRequestURI());
+    System.out.println("Session ID: " + session.getId());
 %>
 
 <!DOCTYPE html>
@@ -64,16 +97,31 @@
         input[type="text"],
         input[type="datetime-local"],
         input[type="time"],
+        select,
         textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 1em;
+            box-sizing: border-box;
         }
 
         textarea {
             resize: vertical;
+        }
+
+        select {
+            background-color: white;
+            cursor: pointer;
+        }
+
+        select:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(74, 111, 165, 0.3);
         }
 
         .btn {
@@ -111,6 +159,10 @@
         a.back-link:hover {
             text-decoration: underline;
         }
+
+        .required {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -123,20 +175,36 @@
     <% } %>
 
     <form method="post" action="creerevenement">
-        <label for="nom">Nom de l'événement :</label>
+        <label for="nom">Nom de l'événement <span class="required">*</span> :</label>
         <input type="text" id="nom" name="nom" required>
 
-        <label for="date">Date et heure :</label>
+        <label for="typeEvenement">Type d'événement <span class="required">*</span> :</label>
+        <select id="typeEvenement" name="typeEvenement" required>
+            <option value="">-- Sélectionnez un type --</option>
+            <%
+                if (typesEvenements != null) {
+                    for (TypeEvenement type : typesEvenements) {
+            %>
+            <option value="<%= type.getIdType() %>"><%= type.getLibelle() %></option>
+            <%
+                }
+            } else {
+            %>
+            <option value="">Aucun type disponible</option>
+            <% } %>
+        </select>
+
+        <label for="date">Date et heure <span class="required">*</span> :</label>
         <input type="datetime-local" id="date" name="date" required>
 
-        <label for="duree">Durée (hh:mm) :</label>
+        <label for="duree">Durée (hh:mm) <span class="required">*</span> :</label>
         <input type="time" id="duree" name="duree" required>
 
-        <label for="lieu">Lieu :</label>
+        <label for="lieu">Lieu <span class="required">*</span> :</label>
         <input type="text" id="lieu" name="lieu" required>
 
         <label for="description">Description :</label>
-        <textarea id="description" name="description" rows="4"></textarea>
+        <textarea id="description" name="description" rows="4" placeholder="Description optionnelle de l'événement..."></textarea>
 
         <button type="submit" class="btn">Créer l'événement</button>
     </form>
@@ -146,4 +214,3 @@
 
 </body>
 </html>
-
