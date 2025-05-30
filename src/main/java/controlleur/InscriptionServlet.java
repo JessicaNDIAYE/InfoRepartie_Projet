@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.annotation.WebServlet;
-
+import utils.HashUtil;
 @WebServlet("/inscription")
 public class InscriptionServlet extends HttpServlet {
 
@@ -84,7 +84,7 @@ public class InscriptionServlet extends HttpServlet {
         Fanfaron fanfaron = new Fanfaron();
         fanfaron.setNomFanfaron(nomFanfaron);
         fanfaron.setEmail(email);
-        fanfaron.setMdp(mdp); // À sécuriser par hashage
+        fanfaron.setMdp(HashUtil.hashPassword(mdp));
         fanfaron.setNom(nom);
         fanfaron.setPrenom(prenom);
         fanfaron.setGenre(genre);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Fanfaron;
+import utils.HashUtil;
 
 public class FanfaronDAO {
 
@@ -112,7 +113,8 @@ public class FanfaronDAO {
 
             stmt.setString(1, identifiant);
             stmt.setString(2, identifiant);
-            stmt.setString(3, mdp);
+            stmt.setString(3, HashUtil.hashPassword(mdp));
+
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
