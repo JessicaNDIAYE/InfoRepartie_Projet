@@ -52,7 +52,7 @@ public class ConnexionController extends HttpServlet {
             session.setAttribute("fanfaron", fanfaron);
 
             if (fanfaron.isAdmin()) {
-                response.sendRedirect(request.getContextPath() + "/admin");
+                response.sendRedirect(request.getContextPath() + "/accueil");
                 return;
             }
 

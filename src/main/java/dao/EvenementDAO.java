@@ -1,6 +1,7 @@
 package dao;
 
 import model.Evenement;
+import model.TypeEvenement;
 import org.postgresql.util.PGInterval;
 import java.sql.*;
 import java.util.ArrayList;
@@ -49,27 +50,43 @@ public class EvenementDAO {
     }
 
     // Récupère tous les événements
-    public List<Evenement> getAll() {
+    public List<Evenement> getAll(String search) {
         List<Evenement> list = new ArrayList<>();
-        String sql = "SELECT * FROM Evenement ORDER BY horodatage DESC";
+
+        String sql = "SELECT e.*, t.libelle AS type_libelle " +
+                "FROM evenement e " +
+                "JOIN type_evenement t ON e.id_type = t.id_type ";
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql += "WHERE LOWER(e.nom) LIKE ? OR LOWER(t.libelle) LIKE ? ";
+        }
+
+        sql += "ORDER BY e.horodatage DESC";
 
         try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            if (search != null && !search.trim().isEmpty()) {
+                String searchTerm = "%" + search.toLowerCase() + "%";
+                stmt.setString(1, searchTerm);
+                stmt.setString(2, searchTerm);
+            }
+
+            ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapResultSetToEvenement(rs));
             }
         } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors de la récupération de tous les événements.");
             e.printStackTrace();
         }
+
         return list;
     }
 
+
     // Alias de getAll()
     public List<Evenement> findAll() {
-        return getAll();
+        return getAll(null);
     }
 
     // Trouve un événement par son ID
@@ -111,90 +128,9 @@ public class EvenementDAO {
         return false;
     }
 
-    // Recherche par nom (LIKE insensible à la casse)
-    public List<Evenement> findByNomLike(String nom) {
-        List<Evenement> list = new ArrayList<>();
-        String sql = "SELECT * FROM Evenement WHERE nom ILIKE ? ORDER BY horodatage DESC";
 
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, "%" + nom + "%");
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToEvenement(rs));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors de la recherche des événements avec nom contenant: " + nom);
-            e.printStackTrace();
-        }
-        return list;
-    }
 
-    // Recherche par lieu
-    public List<Evenement> findByLieu(String lieu) {
-        List<Evenement> list = new ArrayList<>();
-        String sql = "SELECT * FROM Evenement WHERE lieu ILIKE ? ORDER BY horodatage DESC";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, "%" + lieu + "%");
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToEvenement(rs));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors de la recherche des événements par lieu: " + lieu);
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    // Recherche par créateur
-    public List<Evenement> findByCreateur(int idCreateur) {
-        List<Evenement> list = new ArrayList<>();
-        String sql = "SELECT * FROM Evenement WHERE id_createur = ? ORDER BY horodatage DESC";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, idCreateur);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToEvenement(rs));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors de la recherche des événements par créateur: " + idCreateur);
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    // Recherche par plage de dates
-    public List<Evenement> findByDateRange(Timestamp dateDebut, Timestamp dateFin) {
-        List<Evenement> list = new ArrayList<>();
-        String sql = "SELECT * FROM Evenement WHERE horodatage BETWEEN ? AND ? ORDER BY horodatage ASC";
-
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setTimestamp(1, dateDebut);
-            stmt.setTimestamp(2, dateFin);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToEvenement(rs));
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors de la recherche des événements par plage de dates.");
-            e.printStackTrace();
-        }
-        return list;
-    }
 
     // Insère un nouvel événement
     public boolean insert(Evenement evenement) {
@@ -243,44 +179,6 @@ public class EvenementDAO {
         return false;
     }
 
-    // Met à jour un événement
-    public boolean update(Evenement evenement) {
-        if (evenement == null || evenement.getId() <= 0 ||
-                evenement.getNom() == null || evenement.getNom().trim().isEmpty()) {
-            System.err.println("EvenementDAO: Impossible de mettre à jour un événement invalide.");
-            return false;
-        }
-
-        String sql = "UPDATE Evenement SET nom = ?, horodatage = ?, duree = ?, lieu = ?, description = ?, id_type = ?, id_createur = ? WHERE id_event = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, evenement.getNom().trim());
-            stmt.setTimestamp(2, new Timestamp(evenement.getHorodatage().getTime()));
-
-            // Conversion Time vers PGInterval pour PostgreSQL
-            PGInterval interval = timeToInterval(evenement.getDuree());
-            stmt.setObject(3, interval);
-
-            stmt.setString(4, evenement.getLieu());
-            stmt.setString(5, evenement.getDescription());
-            stmt.setInt(6, evenement.getIdType());
-            stmt.setInt(7, evenement.getIdCreateur());
-            stmt.setInt(8, evenement.getId());
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("EvenementDAO: Événement mis à jour avec succès - ID: " + evenement.getId());
-                return true;
-            } else {
-                System.out.println("EvenementDAO: Aucun événement trouvé avec l'ID: " + evenement.getId());
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors de la mise à jour de l'événement - ID: " + evenement.getId());
-            e.printStackTrace();
-        }
-        return false;
-    }
 
     // Supprime par ID
     public boolean delete(int id) {
@@ -318,62 +216,9 @@ public class EvenementDAO {
         return delete(evenement.getId());
     }
 
-    // Vérifie l'existence par ID
-    public boolean exists(int id) {
-        String sql = "SELECT COUNT(*) FROM Evenement WHERE id_event = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors de la vérification d'existence - ID: " + id);
-            e.printStackTrace();
-        }
-        return false;
-    }
 
-    // Compte total
-    public int count() {
-        String sql = "SELECT COUNT(*) FROM Evenement";
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors du comptage des événements.");
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    // Compte par créateur
-    public int countByCreateur(int idCreateur) {
-        String sql = "SELECT COUNT(*) FROM Evenement WHERE id_createur = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, idCreateur);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("EvenementDAO: Erreur lors du comptage par créateur: " + idCreateur);
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    // Méthode privée pour mapper le ResultSet vers un objet Evenement
+    // Méthode privée pour mapper le ResultSet vers un objet Evenement avec TypeEvenement
     private Evenement mapResultSetToEvenement(ResultSet rs) throws SQLException {
         Evenement evenement = new Evenement();
         evenement.setId(rs.getInt("id_event"));
@@ -392,6 +237,15 @@ public class EvenementDAO {
         evenement.setDescription(rs.getString("description"));
         evenement.setIdType(rs.getInt("id_type"));
         evenement.setIdCreateur(rs.getInt("id_createur"));
+
+        TypeEvenement type = new TypeEvenement(
+                rs.getInt("id_type"),
+                rs.getString("type_libelle")
+        );
+
+        evenement.setTypeEvenement(type);
+
         return evenement;
     }
+
 }

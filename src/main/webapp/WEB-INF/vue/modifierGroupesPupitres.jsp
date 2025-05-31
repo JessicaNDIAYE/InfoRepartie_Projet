@@ -24,7 +24,9 @@
 
 <!DOCTYPE html>
 <html>
-<head><title>Modifier Groupes et Pupitres</title>
+<head>
+    <meta charset="UTF-8" />
+    <title>Modifier Groupes et Pupitres</title>
     <style>
         :root {
             --primary-blue: #4a90e2;

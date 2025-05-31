@@ -31,10 +31,16 @@ public class ListeEvenementsServlet extends HttpServlet {
             return;
         }
 
-        // Utilisation de la méthode findAll() au lieu de listerTous()
-        List<Evenement> evenements = evenementDAO.findAll();
+        // Récupérer le paramètre search depuis l'URL
+        String search = req.getParameter("search");
+
+        // Appeler la méthode findAll avec filtre si tu modifies findAll(), sinon appelle getAll(search)
+        List<Evenement> evenements = evenementDAO.getAll(search);
+
         req.setAttribute("evenements", evenements);
+        req.setAttribute("search", search); // pour garder la valeur dans la JSP
 
         req.getRequestDispatcher("/WEB-INF/vue/listeEvenements.jsp").forward(req, resp);
     }
+
 }
