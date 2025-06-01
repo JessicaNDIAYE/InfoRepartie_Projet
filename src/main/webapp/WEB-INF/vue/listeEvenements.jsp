@@ -5,6 +5,7 @@
   Time: 16:31
   To change this template use File | Settings | File Templates.
 --%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="model.Evenement" %>
 <%@ page import="model.Fanfaron" %>
@@ -19,7 +20,9 @@
 
 <!DOCTYPE html>
 <html>
-<head><title>Liste des événements</title>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des événements</title>
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -213,6 +216,14 @@
     </style>
 </head>
 <body>
+
+<form method="get" action="<%= request.getContextPath() + "/listevenementservlet" %>">
+    <input type="text" name="search" placeholder="Rechercher un événement ou type..."
+           value="<%= request.getAttribute("search") != null ? request.getAttribute("search") : "" %>">
+    <button type="submit">🔍 Rechercher</button>
+</form>
+
+
 <h2>Événements disponibles</h2>
 <table border="1">
     <tr>
@@ -225,9 +236,10 @@
         <td><%= e.getDuree() %></td>
         <td><%= e.getLieu() %></td>
         <td>
-            Debug: <%= e.getTypeEvenement() %><br>
-            Libellé: <%= e.getTypeEvenement() != null ? e.getTypeEvenement().getLibelle() : "TypeEvenement est null" %>
+            <%= e.getTypeEvenement().getLibelle() %>
         </td>
+
+
         <td>
             <a class="action-link" href="inscriptionevenement?id=<%= e.getId() %>">Gérer ma participation</a>
         </td>
