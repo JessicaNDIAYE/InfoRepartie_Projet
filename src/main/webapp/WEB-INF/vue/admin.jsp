@@ -40,7 +40,7 @@
             border: 1px solid #ffeaa7;
             border-radius: 8px;
             padding: 1.5rem;
-            margin-bottom: 2rem;
+            margin-top: 4rem;
         }
     </style>
 </head>
@@ -79,90 +79,11 @@
     </div>
     <% } %>
 
-    <% if(request.getAttribute("fanfaronAModifier") != null) {
-        Fanfaron fanfaronAModifier = (Fanfaron) request.getAttribute("fanfaronAModifier");
-    %>
-    <div class="edit-form">
-        <h3><i class="fas fa-user-edit"></i> Modifier l'utilisateur</h3>
-        <form action="admin" method="post">
-            <input type="hidden" name="action" value="update">
-            <input type="hidden" name="id" value="<%= fanfaronAModifier.getId() %>">
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="nomFanfaron" class="form-label">Nom de fanfaron</label>
-                        <input type="text" class="form-control" id="nomFanfaron" name="nomFanfaron"
-                               value="<%= fanfaronAModifier.getNomFanfaron() %>" required>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email"
-                               value="<%= fanfaronAModifier.getEmail() %>" required>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="nom" class="form-label">Nom</label>
-                        <input type="text" class="form-control" id="nom" name="nom"
-                               value="<%= fanfaronAModifier.getNom() %>" required>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="prenom" class="form-label">Prénom</label>
-                        <input type="text" class="form-control" id="prenom" name="prenom"
-                               value="<%= fanfaronAModifier.getPrenom() %>" required>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="genre" class="form-label">Genre</label>
-                        <select class="form-control" id="genre" name="genre" required>
-                            <option value="homme" <%= "homme".equals(fanfaronAModifier.getGenre()) ? "selected" : "" %>>Homme</option>
-                            <option value="femme" <%= "femme".equals(fanfaronAModifier.getGenre()) ? "selected" : "" %>>Femme</option>
-                            <option value="autre" <%= "autre".equals(fanfaronAModifier.getGenre()) ? "selected" : "" %>>Autre</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="contraintesAlimentaires" class="form-label">Contraintes alimentaires</label>
-                        <select class="form-control" id="contraintesAlimentaires" name="contraintesAlimentaires">
-                            <option value="aucune" <%= "aucune".equals(fanfaronAModifier.getContraintesAlimentaires()) ? "selected" : "" %>>Aucune</option>
-                            <option value="végétarien" <%= "végétarien".equals(fanfaronAModifier.getContraintesAlimentaires()) ? "selected" : "" %>>Végétarien</option>
-                            <option value="vegan" <%= "vegan".equals(fanfaronAModifier.getContraintesAlimentaires()) ? "selected" : "" %>>Vegan</option>
-                            <option value="sans porc" <%= "sans porc".equals(fanfaronAModifier.getContraintesAlimentaires()) ? "selected" : "" %>>Sans porc</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i> Enregistrer les modifications
-                </button>
-                <a href="admin" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Annuler
-                </a>
-            </div>
-        </form>
-    </div>
-    <% } %>
-
-    <%
-        List<Fanfaron> fanfarons = (List<Fanfaron>) request.getAttribute("fanfarons");
+    <% List<Fanfaron> fanfarons = (List<Fanfaron>) request.getAttribute("fanfarons");
         int totalUsers = fanfarons != null ? fanfarons.size() : 0;
         long adminCount = fanfarons != null ? fanfarons.stream().filter(Fanfaron::isAdmin).count() : 0;
     %>
+
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card border-primary">
@@ -218,19 +139,18 @@
                         <td>
                             <% if(fanfaron.isAdmin()) { %>
                             <span class="badge admin-badge">
-                                                    <i class="fas fa-crown"></i> Admin
-                                                </span>
+                                <i class="fas fa-crown"></i> Admin
+                            </span>
                             <% } else { %>
                             <span class="badge bg-secondary">Utilisateur</span>
                             <% } %>
                         </td>
                         <td>
                             <div class="btn-group" role="group">
-                                <a href="admin?action=edit&id=<%= fanfaron.getId() %>"
-                                   class="btn btn-sm btn-outline-primary" title="Modifier">
+                                <a href="admin?action=edit&id=<%= fanfaron.getId() %>" class="btn btn-sm btn-outline-primary" title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="admin" method="post" style="display: inline-block;"
+                                <form action="admin" method="post" style="display:inline-block;"
                                       onsubmit="return confirm('Êtes-vous sûr de vouloir basculer le statut administrateur ?')">
                                     <input type="hidden" name="action" value="toggleAdmin">
                                     <input type="hidden" name="id" value="<%= fanfaron.getId() %>">
@@ -238,8 +158,7 @@
                                         <i class="fas fa-user-shield"></i>
                                     </button>
                                 </form>
-                                <a href="admin?action=delete&id=<%= fanfaron.getId() %>"
-                                   class="btn btn-sm btn-outline-danger" title="Supprimer"
+                                <a href="admin?action=delete&id=<%= fanfaron.getId() %>" class="btn btn-sm btn-outline-danger" title="Supprimer"
                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
                                     <i class="fas fa-trash"></i>
                                 </a>
@@ -258,6 +177,59 @@
             </div>
             <% } %>
         </div>
+    </div>
+
+    <div class="edit-form">
+        <h3><i class="fas fa-user-plus"></i> Ajouter un utilisateur</h3>
+        <form action="admin" method="post">
+            <input type="hidden" name="action" value="add">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Nom de fanfaron</label>
+                    <input type="text" name="nomFanfaron" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Nom</label>
+                    <input type="text" name="nom" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Prénom</label>
+                    <input type="text" name="prenom" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Genre</label>
+                    <select name="genre" class="form-control" required>
+                        <option value="homme">Homme</option>
+                        <option value="femme">Femme</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Contraintes alimentaires</label>
+                    <select name="contraintesAlimentaires" class="form-control">
+                        <option value="aucune">Aucune</option>
+                        <option value="végétarien">Végétarien</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="sans porc">Sans porc</option>
+                    </select>
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" name="motDePasse" class="form-control" required>
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="adminCheckbox" name="isAdmin">
+                    <label class="form-check-label" for="adminCheckbox">Administrateur</label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-plus-circle"></i> Ajouter l'utilisateur
+            </button>
+        </form>
     </div>
 </div>
 
