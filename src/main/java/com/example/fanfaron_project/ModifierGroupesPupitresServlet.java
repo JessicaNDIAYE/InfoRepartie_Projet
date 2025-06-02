@@ -26,16 +26,6 @@ public class ModifierGroupesPupitresServlet extends HttpServlet {
     private FanfaronPupitreDAO fanfaronPupitreDAO;
     private FanfaronGroupeDAO fanfaronGroupeDAO;
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        DAOFactory daoFactory = DAOFactory.getInstance();
-        this.groupeDAO = daoFactory.getGroupeDAO();
-        this.pupitreDAO = daoFactory.getPupitreDAO();
-        this.fanfaronPupitreDAO = daoFactory.getFanfaronPupitreDAO();
-        this.fanfaronGroupeDAO = daoFactory.getFanfaronGroupeDAO();
-    }
-
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Fanfaron fanfaron = (Fanfaron) req.getSession().getAttribute("fanfaron");
         if (fanfaron == null) {
@@ -44,15 +34,18 @@ public class ModifierGroupesPupitresServlet extends HttpServlet {
         }
 
         try {
-            // Récupération des listes complètes
+            DAOFactory daoFactory = DAOFactory.getInstance();
+            PupitreDAO pupitreDAO = daoFactory.getPupitreDAO();
+            GroupeDAO groupeDAO = daoFactory.getGroupeDAO();
+            FanfaronPupitreDAO fanfaronPupitreDAO = daoFactory.getFanfaronPupitreDAO();
+            FanfaronGroupeDAO fanfaronGroupeDAO = daoFactory.getFanfaronGroupeDAO();
+
             req.setAttribute("pupitres", pupitreDAO.findAll());
             req.setAttribute("groupes", groupeDAO.findAll());
 
-            // Récupération des associations du fanfaron
             List<FanfaronPupitre> fanfaronPupitres = fanfaronPupitreDAO.findByFanfaronId(fanfaron.getId());
             List<FanfaronGroupe> fanfaronGroupes = fanfaronGroupeDAO.findByFanfaronId(fanfaron.getId());
 
-            // Conversion en listes d'IDs pour la vue
             List<Integer> pupitreIds = new ArrayList<>();
             for (FanfaronPupitre fp : fanfaronPupitres) {
                 pupitreIds.add(fp.getIdPupitre());
@@ -75,21 +68,24 @@ public class ModifierGroupesPupitresServlet extends HttpServlet {
         }
     }
 
+
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Fanfaron fanfaron = (Fanfaron) req.getSession().getAttribute("fanfaron");
         if (fanfaron == null) {
-            resp.sendRedirect("<%= request.getContextPath() %>/connexion");
+            resp.sendRedirect("connexion");
             return;
         }
 
         try {
+            DAOFactory daoFactory = DAOFactory.getInstance();
+            FanfaronPupitreDAO fanfaronPupitreDAO = daoFactory.getFanfaronPupitreDAO();
+            FanfaronGroupeDAO fanfaronGroupeDAO = daoFactory.getFanfaronGroupeDAO();
+
             int fanfaronId = fanfaron.getId();
 
-            // Supprimer toutes les associations existantes
             fanfaronPupitreDAO.deleteByFanfaronId(fanfaronId);
             fanfaronGroupeDAO.deleteByFanfaronId(fanfaronId);
 
-            // Ajouter les nouvelles associations pour les pupitres
             String[] pupitresSelected = req.getParameterValues("pupitres");
             if (pupitresSelected != null) {
                 for (String pupitreIdStr : pupitresSelected) {
@@ -101,7 +97,6 @@ public class ModifierGroupesPupitresServlet extends HttpServlet {
                 }
             }
 
-            // Ajouter les nouvelles associations pour les groupes
             String[] groupesSelected = req.getParameterValues("groupes");
             if (groupesSelected != null) {
                 for (String groupeIdStr : groupesSelected) {
@@ -121,4 +116,5 @@ public class ModifierGroupesPupitresServlet extends HttpServlet {
             req.getRequestDispatcher("/WEB-INF/vue/erreur.jsp").forward(req, resp);
         }
     }
+
 }

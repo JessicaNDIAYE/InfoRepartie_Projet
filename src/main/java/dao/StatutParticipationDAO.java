@@ -33,26 +33,7 @@ public class StatutParticipationDAO {
         return statuts;
     }
 
-    /**
-     * Récupère un statut de participation par ID.
-     */
-    public StatutParticipation findById(int id) throws SQLException {
-        String sql = "SELECT id_statut, libelle, couleur FROM Statut_Participation WHERE id_statut = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    StatutParticipation statut = new StatutParticipation();
-                    statut.setIdStatut(rs.getInt("id_statut"));
-                    statut.setLibelle(rs.getString("libelle"));
-                    statut.setCouleur(rs.getString("couleur"));
-                    return statut;
-                }
-            }
-        }
-        return null;
-    }
 
     /**
      * Insère un nouveau statut de participation.
@@ -66,18 +47,7 @@ public class StatutParticipationDAO {
         }
     }
 
-    /**
-     * Met à jour un statut existant.
-     */
-    public boolean update(StatutParticipation statut) throws SQLException {
-        String sql = "UPDATE Statut_Participation SET libelle = ?, couleur = ? WHERE id_statut = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, statut.getLibelle());
-            stmt.setString(2, statut.getCouleur());
-            stmt.setInt(3, statut.getIdStatut());
-            return stmt.executeUpdate() == 1;
-        }
-    }
+
 
     /**
      * Supprime un statut de participation par ID.

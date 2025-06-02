@@ -91,7 +91,11 @@ public class EvenementDAO {
 
     // Trouve un événement par son ID
     public Evenement findById(int id) {
-        String sql = "SELECT * FROM Evenement WHERE id_event = ?";
+        String sql = "SELECT e.*, t.libelle AS type_libelle " +
+                "FROM evenement e " +
+                "JOIN type_evenement t ON e.id_type = t.id_type " +
+                "WHERE e.id_event = ?";
+
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -127,9 +131,6 @@ public class EvenementDAO {
 
         return false;
     }
-
-
-
 
 
     // Insère un nouvel événement

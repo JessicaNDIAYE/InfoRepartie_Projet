@@ -68,21 +68,5 @@ public class FanfaronPupitreDAO {
         return result;
     }
 
-    /**
-     * Récupère toutes les associations fanfaron-pupitre.
-     */
-    public List<FanfaronPupitre> findAll() throws SQLException {
-        List<FanfaronPupitre> result = new ArrayList<>();
-        String sql = "SELECT id_fanfaron, id_pupitre FROM Fanfaron_Pupitre";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                FanfaronPupitre assoc = new FanfaronPupitre();
-                assoc.setIdFanfaron(rs.getInt("id_fanfaron"));
-                assoc.setIdPupitre(rs.getInt("id_pupitre"));
-                result.add(assoc);
-            }
-        }
-        return result;
-    }
+
 }

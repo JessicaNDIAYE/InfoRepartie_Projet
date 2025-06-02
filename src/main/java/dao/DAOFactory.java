@@ -151,13 +151,5 @@ public class DAOFactory {
         }
     }
 
-    /**
-     * Méthode pour nettoyer les ressources lors de l'arrêt de l'application
-     */
-    public static void cleanup() {
-        if (instance != null) {
-            instance.closeConnection();
-            instance = null;
-        }
-    }
+
 }

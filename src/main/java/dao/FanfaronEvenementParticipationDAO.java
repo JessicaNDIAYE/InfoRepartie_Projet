@@ -77,49 +77,8 @@ public class FanfaronEvenementParticipationDAO {
         }
     }
 
-    /**
-     * Liste toutes les participations d'un fanfaron.
-     */
-    public List<FanfaronEvenementParticipation> findByFanfaron(int idFanfaron) throws SQLException {
-        List<FanfaronEvenementParticipation> participations = new ArrayList<>();
-        String sql = "SELECT * FROM Fanfaron_Evenement_Participation WHERE id_fanfaron = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, idFanfaron);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    FanfaronEvenementParticipation p = new FanfaronEvenementParticipation();
-                    p.setIdFanfaron(rs.getInt("id_fanfaron"));
-                    p.setIdEvent(rs.getInt("id_event"));
-                    p.setIdPupitre(rs.getInt("id_pupitre"));
-                    p.setIdStatutParticipation(rs.getInt("id_statut_participation"));
-                    participations.add(p);
-                }
-            }
-        }
-        return participations;
-    }
 
-    /**
-     * Liste toutes les participations pour un événement.
-     */
-    public List<FanfaronEvenementParticipation> findByEvent(int idEvent) throws SQLException {
-        List<FanfaronEvenementParticipation> participations = new ArrayList<>();
-        String sql = "SELECT * FROM Fanfaron_Evenement_Participation WHERE id_event = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, idEvent);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    FanfaronEvenementParticipation p = new FanfaronEvenementParticipation();
-                    p.setIdFanfaron(rs.getInt("id_fanfaron"));
-                    p.setIdEvent(rs.getInt("id_event"));
-                    p.setIdPupitre(rs.getInt("id_pupitre"));
-                    p.setIdStatutParticipation(rs.getInt("id_statut_participation"));
-                    participations.add(p);
-                }
-            }
-        }
-        return participations;
-    }
+
     public void saveOrUpdate(FanfaronEvenementParticipation participation) throws SQLException {
         FanfaronEvenementParticipation existing = find(participation.getIdFanfaron(), participation.getIdEvent());
 

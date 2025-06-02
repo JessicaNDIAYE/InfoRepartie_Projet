@@ -45,55 +45,9 @@ public class PupitreDAO {
         return getAll();
     }
 
-    /**
-     * Trouve un pupitre par son ID
-     * @param id L'identifiant du pupitre
-     * @return Le pupitre trouvé ou null si non trouvé
-     */
-    public Pupitre findById(int id) {
-        String sql = "SELECT * FROM Pupitre WHERE id_pupitre = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Pupitre p = new Pupitre();
-                    p.setIdPupitre(rs.getInt("id_pupitre"));
-                    p.setLibelle(rs.getString("libelle"));
-                    return p;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("PupitreDAO: Erreur lors de la recherche du pupitre avec ID: " + id);
-            e.printStackTrace();
-        }
-        return null;
-    }
 
-    /**
-     * Trouve un pupitre par son libellé
-     * @param libelle Le libellé du pupitre
-     * @return Le pupitre trouvé ou null si non trouvé
-     */
-    public Pupitre findByLibelle(String libelle) {
-        String sql = "SELECT * FROM Pupitre WHERE libelle = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, libelle);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Pupitre p = new Pupitre();
-                    p.setIdPupitre(rs.getInt("id_pupitre"));
-                    p.setLibelle(rs.getString("libelle"));
-                    return p;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("PupitreDAO: Erreur lors de la recherche du pupitre avec libellé: " + libelle);
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     /**
      * Insère un nouveau pupitre dans la base de données
@@ -129,36 +83,7 @@ public class PupitreDAO {
         return false;
     }
 
-    /**
-     * Met à jour un pupitre existant
-     * @param pupitre Le pupitre à mettre à jour
-     * @return true si la mise à jour a réussi, false sinon
-     */
-    public boolean update(Pupitre pupitre) {
-        if (pupitre == null || pupitre.getIdPupitre() <= 0 ||
-                pupitre.getLibelle() == null || pupitre.getLibelle().trim().isEmpty()) {
-            System.err.println("PupitreDAO: Impossible de mettre à jour un pupitre invalide.");
-            return false;
-        }
 
-        String sql = "UPDATE Pupitre SET libelle = ? WHERE id_pupitre = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, pupitre.getLibelle().trim());
-            stmt.setInt(2, pupitre.getIdPupitre());
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("PupitreDAO: Pupitre mis à jour avec succès - ID: " + pupitre.getIdPupitre());
-                return true;
-            } else {
-                System.out.println("PupitreDAO: Aucun pupitre trouvé avec l'ID: " + pupitre.getIdPupitre());
-            }
-        } catch (SQLException e) {
-            System.err.println("PupitreDAO: Erreur lors de la mise à jour du pupitre - ID: " + pupitre.getIdPupitre());
-            e.printStackTrace();
-        }
-        return false;
-    }
 
     /**
      * Supprime un pupitre par son ID
@@ -202,42 +127,5 @@ public class PupitreDAO {
         return delete(pupitre.getIdPupitre());
     }
 
-    /**
-     * Vérifie si un pupitre existe par son ID
-     * @param id L'identifiant du pupitre
-     * @return true si le pupitre existe, false sinon
-     */
-    public boolean exists(int id) {
-        String sql = "SELECT COUNT(*) FROM Pupitre WHERE id_pupitre = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("PupitreDAO: Erreur lors de la vérification d'existence - ID: " + id);
-            e.printStackTrace();
-        }
-        return false;
-    }
 
-    /**
-     * Compte le nombre total de pupitres
-     * @return Le nombre de pupitres
-     */
-    public int count() {
-        String sql = "SELECT COUNT(*) FROM Pupitre";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println("PupitreDAO: Erreur lors du comptage des pupitres.");
-            e.printStackTrace();
-        }
-        return 0;
-    }
 }

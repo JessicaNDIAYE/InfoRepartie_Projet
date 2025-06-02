@@ -39,7 +39,7 @@ public class DatabaseConnection {
             System.err.println("DatabaseConnection: Erreur lors de l'établissement de la connexion à la base de données.");
             System.err.println("URL: " + DB_URL + ", User: " + DB_USER);
             e.printStackTrace();
-            throw e; // Relaunce l'exception pour qu'elle soit gérée plus haut
+            throw e;
         }
     }
 }

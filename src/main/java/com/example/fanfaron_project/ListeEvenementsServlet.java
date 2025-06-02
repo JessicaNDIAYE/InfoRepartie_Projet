@@ -31,10 +31,10 @@ public class ListeEvenementsServlet extends HttpServlet {
             return;
         }
 
-        // Récupérer le paramètre search depuis l'URL
+
         String search = req.getParameter("search");
 
-        // Appeler la méthode findAll avec filtre si tu modifies findAll(), sinon appelle getAll(search)
+
         List<Evenement> evenements = evenementDAO.getAll(search);
 
         req.setAttribute("evenements", evenements);
